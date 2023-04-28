@@ -4,8 +4,8 @@ use discord_flows::get_client;
 use slack_flows::{listen_to_channel, send_message_to_channel, SlackMessage};
 
 #[no_mangle]
-#[tokio::main(flavor = "current_thread")]
-pub async fn run() {
+// #[tokio::main(flavor = "current_thread")]
+pub fn run() {
     let token = env::var("DISCORD_TOKEN").unwrap();
 
     let team_name = env::var("team").unwrap_or("ham-5b68442".to_string());
