@@ -13,11 +13,12 @@ pub async fn run() {
 
     // listen_to_event(token.clone(), move |msg| handle(msg, token)).await;
     listen_to_channel(&team_name, &channel_name, |msg| {
-        cb(msg, &token, &team_name, &channel_name)
+        let ok = cb(msg, &token, &team_name, &channel_name);
+        println!("ok? {ok}");
     });
 }
 
-fn cb(msg: SlackMessage, token: &str, team_name: &str, channel_name: &str) {
+fn cb(msg: SlackMessage, token: &str, team_name: &str, channel_name: &str) -> bool {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -26,7 +27,7 @@ fn cb(msg: SlackMessage, token: &str, team_name: &str, channel_name: &str) {
     rt.block_on(handle(msg, token, team_name, channel_name))
 }
 
-async fn handle(msg: SlackMessage, token: &str, team_name: &str, channel_name: &str) {
+async fn handle(msg: SlackMessage, token: &str, team_name: &str, channel_name: &str) -> bool {
     let client = get_client(token);
 
     let channel_id = 1097913977058627707;
@@ -44,4 +45,6 @@ async fn handle(msg: SlackMessage, token: &str, team_name: &str, channel_name: &
         .await;
 
     send_message_to_channel(team_name, channel_name, content.clone());
+
+    true
 }
