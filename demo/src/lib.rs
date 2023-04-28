@@ -1,7 +1,7 @@
 use std::env;
 
 use discord_flows::get_client;
-use slack_flows::{listen_to_channel, SlackMessage};
+use slack_flows::{listen_to_channel, send_message_to_channel, SlackMessage};
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
@@ -12,23 +12,27 @@ pub async fn run() {
     let channel_name = env::var("channel").unwrap_or("general".to_string());
 
     // listen_to_event(token.clone(), move |msg| handle(msg, token)).await;
-    listen_to_channel(&team_name, &channel_name, |msg| cb(msg, &token));
+    listen_to_channel(&team_name, &channel_name, |msg| {
+        cb(msg, &token, &team_name, &channel_name)
+    });
 }
 
-fn cb(msg: SlackMessage, token: &str) {
+fn cb(msg: SlackMessage, token: &str, team_name: &str, channel_name: &str) {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .unwrap();
 
-    rt.block_on(handle(msg, token))
+    rt.block_on(handle(msg, token, team_name, channel_name))
 }
 
-async fn handle(msg: SlackMessage, token: &str) {
+async fn handle(msg: SlackMessage, token: &str, team_name: &str, channel_name: &str) {
     let client = get_client(token);
 
     let channel_id = 1097913977058627707;
     let content = msg.text;
+
+    send_message_to_channel(team_name, channel_name, content.clone());
 
     _ = client
         .send_message(
@@ -38,4 +42,6 @@ async fn handle(msg: SlackMessage, token: &str) {
             }),
         )
         .await;
+
+    send_message_to_channel(team_name, channel_name, content.clone());
 }
