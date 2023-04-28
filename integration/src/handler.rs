@@ -4,6 +4,7 @@ use serenity::async_trait;
 use serenity::model::channel::Message;
 use serenity::prelude::{Context, EventHandler};
 use sqlx::PgPool;
+use tracing::debug;
 
 use crate::common::{get_cache, get_client};
 
@@ -47,14 +48,19 @@ impl EventHandler for Handler {
         let hook_url = "https://code.flows.network/hook/discord/message";
         let uuid = self.query_uuid().await;
 
+        debug!(uuid);
+
         if let Some(uuid) = uuid {
             let client = get_client();
-            _ = client
+            let resp = client
                 .post(hook_url)
                 .json(&msg)
                 .header("X-Discord-uuid", uuid)
                 .send()
                 .await;
+            if let Err(e) = resp {
+                debug!(?e);
+            }
         }
     }
 }

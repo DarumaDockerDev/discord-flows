@@ -13,6 +13,7 @@ use serde_json::Value;
 use serenity::{model::gateway::GatewayIntents, Client};
 use shuttle_runtime::CustomError;
 use sqlx::{Executor, PgPool};
+use tracing::{debug, info};
 use uuid::Uuid;
 
 mod common;
@@ -171,8 +172,10 @@ impl AppState {
             .unwrap();
 
         client.start().await?;
+        debug!("started a client: {:?}", client.ws_url);
 
         let mut guard = clients_map().lock().await;
+        debug!("insert a client: {}", &token);
         guard.insert(token, client);
 
         Ok(())
@@ -186,6 +189,7 @@ impl AppState {
             .map_err(|e| e.to_string())
             .unwrap();
         for Bot { token } in bots {
+            debug!("start client: {}", token);
             _ = self.start_client(token).await;
         }
     }
@@ -203,7 +207,9 @@ async fn axum(#[shuttle_shared_db::Postgres] pool: PgPool) -> shuttle_axum::Shut
 
     let state_cloned = state.clone();
     tokio::spawn(async move {
+        info!("spawning ws listeners");
         state_cloned.listen_ws().await;
+        info!("spawned ws listeners");
     });
 
     let router = Router::new()
