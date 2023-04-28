@@ -1,6 +1,7 @@
 use std::env;
 
 use discord_flows::{get_client, listen_to_event, model::Message};
+use serde_json::json;
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
@@ -19,7 +20,7 @@ async fn handle(msg: Message, token: &str) {
     _ = client
         .send_message(
             channel_id.into(),
-            &serde_json::json!({
+            &json!({
                 "content": content,
             }),
         )
